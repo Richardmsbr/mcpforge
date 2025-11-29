@@ -109,6 +109,10 @@ jobs:
       - name: Generate TypeScript project
         run: |
           mcpforge new test-typescript --lang typescript --no-git
+          echo "=== Generated src/index.ts ==="
+          cat test-typescript/src/index.ts
+          echo "=== Generated package.json ==="
+          cat test-typescript/package.json
           cd test-typescript
           npm run build
 

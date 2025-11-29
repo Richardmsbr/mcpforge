@@ -9,6 +9,21 @@ import { execa } from 'execa';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Find package root by looking for package.json
+function findPackageRoot(startDir: string): string {
+  let dir = startDir;
+  while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, 'package.json'))) {
+      const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf-8'));
+      if (pkg.name === 'mcpforge') {
+        return dir;
+      }
+    }
+    dir = path.dirname(dir);
+  }
+  return startDir;
+}
+
 interface NewCommandOptions {
   lang: 'python' | 'typescript' | 'go' | 'rust';
   pattern: 'basic' | 'enterprise' | 'microservices';
@@ -66,8 +81,9 @@ export async function newCommand(name: string, options: NewCommandOptions): Prom
     // Create project directory
     await fs.ensureDir(projectPath);
 
-    // Get template path
-    const templatesRoot = path.resolve(__dirname, '../../templates');
+    // Get template path - find package root first to handle npm link correctly
+    const packageRoot = findPackageRoot(__dirname);
+    const templatesRoot = path.join(packageRoot, 'templates');
     const templatePath = path.join(templatesRoot, lang, pattern);
 
     if (await fs.pathExists(templatePath)) {
