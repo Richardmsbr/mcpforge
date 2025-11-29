@@ -463,11 +463,11 @@ Use these tools to help the user with their requests."""
 
 async function generateTypeScriptProject(
   projectPath: string,
-  name: string,
+  _name: string,
   nameKebab: string,
   namePascal: string,
   pattern: string,
-  transport: string
+  _transport: string
 ): Promise<void> {
   const srcDir = path.join(projectPath, 'src');
   await fs.ensureDir(srcDir);
@@ -690,11 +690,11 @@ server.run();
 
 async function generateGoProject(
   projectPath: string,
-  name: string,
+  _name: string,
   nameSnake: string,
   namePascal: string,
-  pattern: string,
-  transport: string
+  _pattern: string,
+  _transport: string
 ): Promise<void> {
   // go.mod
   await fs.writeFile(
@@ -809,11 +809,11 @@ go build -o ${nameSnake}
 
 async function generateRustProject(
   projectPath: string,
-  name: string,
+  _name: string,
   nameSnake: string,
   namePascal: string,
-  pattern: string,
-  transport: string
+  _pattern: string,
+  _transport: string
 ): Promise<void> {
   const srcDir = path.join(projectPath, 'src');
   await fs.ensureDir(srcDir);
@@ -843,7 +843,6 @@ serde_json = "1"
 
 use rmcp::{server::Server, tool, Error, Result};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct HelloArgs {

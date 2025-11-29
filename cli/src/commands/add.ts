@@ -179,8 +179,6 @@ Use {{variable}} for template variables."""`;
 }
 
 function generateTypeScriptSnippet(type: AddType, name: string): string {
-  const nameCamel = name.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-
   switch (type) {
     case 'tool':
       return `server.tool({

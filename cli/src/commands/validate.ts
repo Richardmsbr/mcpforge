@@ -15,7 +15,7 @@ interface ValidationResult {
 
 export async function validateCommand(
   project: string,
-  options: ValidateCommandOptions
+  _options: ValidateCommandOptions
 ): Promise<void> {
   const projectPath = path.resolve(process.cwd(), project);
 
