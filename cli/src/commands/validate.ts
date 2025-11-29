@@ -216,8 +216,8 @@ async function validateTypeScript(
     ...packageJson.devDependencies,
   };
 
-  if (!deps['@modelcontextprotocol/sdk'] && !deps['fastmcp']) {
-    result.errors.push('Missing MCP dependency (@modelcontextprotocol/sdk or fastmcp)');
+  if (!deps['@modelcontextprotocol/sdk']) {
+    result.errors.push('Missing MCP dependency (@modelcontextprotocol/sdk)');
     result.valid = false;
   }
 
@@ -235,7 +235,7 @@ async function validateTypeScript(
     const content = await fs.readFile(indexPath, 'utf-8');
 
     // Check for at least one tool
-    if (!content.includes('.tool(')) {
+    if (!content.includes('ListToolsRequestSchema') && !content.includes('.tool(')) {
       result.warnings.push('No tools defined in server');
     }
   }

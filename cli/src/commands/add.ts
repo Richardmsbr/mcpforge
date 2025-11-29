@@ -181,37 +181,61 @@ Use {{variable}} for template variables."""`;
 function generateTypeScriptSnippet(type: AddType, name: string): string {
   switch (type) {
     case 'tool':
-      return `server.tool({
+      return `// Add to ListToolsRequestSchema handler:
+{
   name: '${name}',
   description: 'Description of ${name}',
-  schema: {
-    param: { type: 'string', description: 'Description of parameter' },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      param: { type: 'string', description: 'Description of parameter' },
+    },
+    required: ['param'],
   },
-}, async ({ param }) => {
-  // Implementation here
-  return \`Result: \${param}\`;
-});`;
+}
+
+// Add to CallToolRequestSchema handler switch:
+case '${name}': {
+  const { param } = args as { param: string };
+  return { content: [{ type: 'text', text: \`Result: \${param}\` }] };
+}`;
 
     case 'resource':
-      return `server.resource({
+      return `// Add to ListResourcesRequestSchema handler:
+{
   uri: 'resource://${name}',
   name: '${name}',
   description: 'Description of ${name} resource',
-}, async () => {
-  return JSON.stringify({
-    key: 'value',
-  }, null, 2);
-});`;
+  mimeType: 'application/json',
+}
+
+// Add to ReadResourceRequestSchema handler:
+if (uri === 'resource://${name}') {
+  return {
+    contents: [{
+      uri,
+      mimeType: 'application/json',
+      text: JSON.stringify({ key: 'value' }, null, 2),
+    }],
+  };
+}`;
 
     case 'prompt':
-      return `server.prompt({
+      return `// Add to ListPromptsRequestSchema handler:
+{
   name: '${name}',
   description: '${name} prompt template',
-}, async () => {
-  return \`Your prompt template here.
+}
 
-Use {{variable}} for template variables.\`;
-});`;
+// Add to GetPromptRequestSchema handler:
+if (name === '${name}') {
+  return {
+    messages: [{
+      role: 'user',
+      content: { type: 'text', text: 'Your prompt template here.' },
+    }],
+  };
+}`;
   }
 }
 
