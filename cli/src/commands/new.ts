@@ -67,7 +67,7 @@ export async function newCommand(name: string, options: NewCommandOptions): Prom
     await fs.ensureDir(projectPath);
 
     // Get template path
-    const templatesRoot = path.resolve(__dirname, '../../../templates');
+    const templatesRoot = path.resolve(__dirname, '../../templates');
     const templatePath = path.join(templatesRoot, lang, pattern);
 
     if (await fs.pathExists(templatePath)) {
