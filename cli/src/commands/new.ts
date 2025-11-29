@@ -86,6 +86,15 @@ export async function newCommand(name: string, options: NewCommandOptions): Prom
     const templatesRoot = path.join(packageRoot, 'templates');
     const templatePath = path.join(templatesRoot, lang, pattern);
 
+    // Debug output for CI troubleshooting
+    if (process.env.DEBUG_MCPFORGE) {
+      console.log(`DEBUG: __dirname = ${__dirname}`);
+      console.log(`DEBUG: packageRoot = ${packageRoot}`);
+      console.log(`DEBUG: templatesRoot = ${templatesRoot}`);
+      console.log(`DEBUG: templatePath = ${templatePath}`);
+      console.log(`DEBUG: template exists = ${await fs.pathExists(templatePath)}`);
+    }
+
     if (await fs.pathExists(templatePath)) {
       // Copy template files
       await copyTemplateFiles(templatePath, projectPath, {

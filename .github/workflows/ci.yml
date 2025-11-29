@@ -107,12 +107,18 @@ jobs:
           npm link
 
       - name: Generate TypeScript project
+        env:
+          DEBUG_MCPFORGE: "1"
         run: |
+          echo "=== Checking templates directory ==="
+          ls -la templates/typescript/basic/src/ || echo "Template dir not found"
+          echo "=== Running mcpforge ==="
           mcpforge new test-typescript --lang typescript --no-git
           echo "=== Generated src/index.ts ==="
           cat test-typescript/src/index.ts
           echo "=== Generated package.json ==="
           cat test-typescript/package.json
+          echo "=== Building project ==="
           cd test-typescript
           npm run build
 
