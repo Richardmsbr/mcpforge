@@ -1,0 +1,43 @@
+"""{{projectNamePascal}} MCP Server"""
+from fastmcp import FastMCP
+
+server = FastMCP("{{projectNameSnake}}")
+
+
+@server.tool()
+async def hello(name: str = "World") -> str:
+    """Say hello to someone.
+
+    Args:
+        name: The name to greet
+
+    Returns:
+        A greeting message
+    """
+    return f"Hello, {name}!"
+
+
+@server.tool()
+async def add(a: int, b: int) -> int:
+    """Add two numbers.
+
+    Args:
+        a: First number
+        b: Second number
+
+    Returns:
+        The sum of a and b
+    """
+    return a + b
+
+
+@server.resource("config://settings")
+async def get_settings() -> str:
+    """Get server configuration settings."""
+    return """
+    {
+        "version": "0.1.0",
+        "name": "{{projectNameSnake}}",
+        "created_with": "mcpforge"
+    }
+    """

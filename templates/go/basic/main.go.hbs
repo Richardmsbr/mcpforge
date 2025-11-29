@@ -1,0 +1,55 @@
+// {{projectNamePascal}} MCP Server
+// Created with MCPForge
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/mark3labs/mcp-go/mcp"
+    "github.com/mark3labs/mcp-go/server"
+)
+
+func main() {
+    s := server.NewMCPServer(
+        "{{projectNameSnake}}",
+        "0.1.0",
+    )
+
+    // Register tools
+    s.AddTool(mcp.NewTool("hello",
+        mcp.WithDescription("Say hello to someone"),
+        mcp.WithString("name",
+            mcp.Description("The name to greet"),
+            mcp.DefaultString("World"),
+        ),
+    ), helloHandler)
+
+    s.AddTool(mcp.NewTool("add",
+        mcp.WithDescription("Add two numbers"),
+        mcp.WithNumber("a", mcp.Description("First number"), mcp.Required()),
+        mcp.WithNumber("b", mcp.Description("Second number"), mcp.Required()),
+    ), addHandler)
+
+    // Start server
+    if err := server.ServeStdio(s); err != nil {
+        log.Fatalf("Server error: %v", err)
+    }
+}
+
+func helloHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+    name, _ := request.Params.Arguments["name"].(string)
+    if name == "" {
+        name = "World"
+    }
+
+    return mcp.NewToolResultText(fmt.Sprintf("Hello, %s!", name)), nil
+}
+
+func addHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+    a, _ := request.Params.Arguments["a"].(float64)
+    b, _ := request.Params.Arguments["b"].(float64)
+
+    return mcp.NewToolResultText(fmt.Sprintf("%v", a+b)), nil
+}

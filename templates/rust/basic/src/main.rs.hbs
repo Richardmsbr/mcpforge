@@ -1,0 +1,40 @@
+//! {{projectNamePascal}} MCP Server
+//! Created with MCPForge
+
+use rmcp::{server::Server, tool, Error, Result};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+struct HelloArgs {
+    #[serde(default = "default_name")]
+    name: String,
+}
+
+fn default_name() -> String {
+    "World".to_string()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct AddArgs {
+    a: f64,
+    b: f64,
+}
+
+#[tool(name = "hello", description = "Say hello to someone")]
+async fn hello(args: HelloArgs) -> Result<String> {
+    Ok(format!("Hello, {}!", args.name))
+}
+
+#[tool(name = "add", description = "Add two numbers")]
+async fn add(args: AddArgs) -> Result<String> {
+    Ok(format!("{}", args.a + args.b))
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let server = Server::new("{{projectNameSnake}}", "0.1.0")
+        .tool(hello)
+        .tool(add);
+
+    server.run_stdio().await
+}

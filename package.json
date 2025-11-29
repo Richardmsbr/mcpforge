@@ -1,0 +1,71 @@
+{
+  "name": "mcpforge",
+  "version": "1.0.0",
+  "description": "The Architecture Patterns Framework for Model Context Protocol",
+  "main": "dist/index.js",
+  "bin": {
+    "mcpforge": "./dist/cli/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepublishOnly": "npm run build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "anthropic",
+    "ai",
+    "llm",
+    "architecture",
+    "design-patterns",
+    "framework",
+    "cli",
+    "scaffolding"
+  ],
+  "author": "Richard <richard@provise.com.br>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Richardmsbr/mcpforge.git"
+  },
+  "homepage": "https://mcpforge.dev",
+  "bugs": {
+    "url": "https://github.com/Richardmsbr/mcpforge/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "enquirer": "^2.4.1",
+    "execa": "^9.5.1",
+    "fs-extra": "^11.2.0",
+    "glob": "^11.0.0",
+    "handlebars": "^4.7.8",
+    "ora": "^8.1.1",
+    "semver": "^7.6.3",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.10.1",
+    "@types/semver": "^7.5.8",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "eslint": "^9.15.0",
+    "prettier": "^3.4.1",
+    "typescript": "^5.7.2",
+    "vitepress": "^1.5.0",
+    "vitest": "^2.1.6"
+  }
+}

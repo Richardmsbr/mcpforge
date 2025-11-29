@@ -1,0 +1,42 @@
+/**
+ * {{projectNamePascal}} MCP Server
+ * Created with MCPForge
+ */
+import { FastMCP } from 'fastmcp';
+
+const server = new FastMCP('{{projectNameKebab}}');
+
+server.tool({
+  name: 'hello',
+  description: 'Say hello to someone',
+  schema: {
+    name: { type: 'string', default: 'World', description: 'The name to greet' },
+  },
+}, async ({ name }) => {
+  return `Hello, ${name}!`;
+});
+
+server.tool({
+  name: 'add',
+  description: 'Add two numbers',
+  schema: {
+    a: { type: 'number', description: 'First number' },
+    b: { type: 'number', description: 'Second number' },
+  },
+}, async ({ a, b }) => {
+  return a + b;
+});
+
+server.resource({
+  uri: 'config://settings',
+  name: 'Settings',
+  description: 'Server configuration settings',
+}, async () => {
+  return JSON.stringify({
+    version: '0.1.0',
+    name: '{{projectNameKebab}}',
+    created_with: 'mcpforge',
+  }, null, 2);
+});
+
+server.run();
