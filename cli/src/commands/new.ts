@@ -490,7 +490,6 @@ async function generateTypeScriptProject(
       },
       dependencies: {
         '@modelcontextprotocol/sdk': '^1.0.0',
-        fastmcp: '^1.0.0',
       },
       devDependencies: {
         '@types/node': '^22.0.0',
@@ -573,44 +572,129 @@ function generateTypeScriptBasicServer(nameKebab: string, namePascal: string): s
  * ${namePascal} MCP Server
  * Created with MCPForge
  */
-import { FastMCP } from 'fastmcp';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 
-const server = new FastMCP('${nameKebab}');
-
-server.tool({
-  name: 'hello',
-  description: 'Say hello to someone',
-  schema: {
-    name: { type: 'string', default: 'World', description: 'The name to greet' },
-  },
-}, async ({ name }) => {
-  return \`Hello, \${name}!\`;
-});
-
-server.tool({
-  name: 'add',
-  description: 'Add two numbers',
-  schema: {
-    a: { type: 'number', description: 'First number' },
-    b: { type: 'number', description: 'Second number' },
-  },
-}, async ({ a, b }) => {
-  return a + b;
-});
-
-server.resource({
-  uri: 'config://settings',
-  name: 'Settings',
-  description: 'Server configuration settings',
-}, async () => {
-  return JSON.stringify({
-    version: '0.1.0',
+const server = new Server(
+  {
     name: '${nameKebab}',
-    created_with: 'mcpforge',
-  }, null, 2);
+    version: '0.1.0',
+  },
+  {
+    capabilities: {
+      tools: {},
+      resources: {},
+    },
+  }
+);
+
+// List available tools
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: 'hello',
+        description: 'Say hello to someone',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'The name to greet',
+              default: 'World',
+            },
+          },
+        },
+      },
+      {
+        name: 'add',
+        description: 'Add two numbers',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            a: { type: 'number', description: 'First number' },
+            b: { type: 'number', description: 'Second number' },
+          },
+          required: ['a', 'b'],
+        },
+      },
+    ],
+  };
 });
 
-server.run();
+// Handle tool calls
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  switch (name) {
+    case 'hello': {
+      const greeting = \`Hello, \${(args as { name?: string }).name || 'World'}!\`;
+      return { content: [{ type: 'text', text: greeting }] };
+    }
+    case 'add': {
+      const { a, b } = args as { a: number; b: number };
+      return { content: [{ type: 'text', text: String(a + b) }] };
+    }
+    default:
+      throw new Error(\`Unknown tool: \${name}\`);
+  }
+});
+
+// List available resources
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: 'config://settings',
+        name: 'Settings',
+        description: 'Server configuration settings',
+        mimeType: 'application/json',
+      },
+    ],
+  };
+});
+
+// Read resource content
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+
+  if (uri === 'config://settings') {
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: 'application/json',
+          text: JSON.stringify(
+            {
+              version: '0.1.0',
+              name: '${nameKebab}',
+              created_with: 'mcpforge',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+
+  throw new Error(\`Unknown resource: \${uri}\`);
+});
+
+// Start the server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error('${namePascal} MCP server running on stdio');
+}
+
+main().catch(console.error);
 `;
 }
 
@@ -619,72 +703,173 @@ function generateTypeScriptEnterpriseServer(nameKebab: string, namePascal: strin
  * ${namePascal} MCP Server - Enterprise Edition
  * Created with MCPForge
  */
-import { FastMCP, type Context } from 'fastmcp';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 
-interface ServerContext {
-  startupTime: string;
-}
+const startupTime = new Date().toISOString();
 
-const server = new FastMCP<ServerContext>('${nameKebab}', {
-  async onStart(ctx: Context<ServerContext>) {
-    console.log('Starting ${namePascal} server...');
-    ctx.data.startupTime = new Date().toISOString();
-  },
-  async onStop() {
-    console.log('Shutting down ${namePascal} server...');
-  },
-});
-
-server.tool({
-  name: 'hello',
-  description: 'Say hello to someone',
-  schema: {
-    name: { type: 'string', default: 'World', description: 'The name to greet' },
-  },
-}, async ({ name }, ctx) => {
-  console.log(\`hello called with name=\${name}\`);
-  return \`Hello, \${name}!\`;
-});
-
-server.tool({
-  name: 'health_check',
-  description: 'Check server health status',
-  schema: {},
-}, async (_, ctx) => {
-  return {
-    status: 'healthy',
+const server = new Server(
+  {
+    name: '${nameKebab}',
     version: '0.1.0',
-    uptime: ctx.data.startupTime,
+  },
+  {
+    capabilities: {
+      tools: {},
+      resources: {},
+      prompts: {},
+    },
+  }
+);
+
+console.error('Starting ${namePascal} server...');
+
+// List available tools
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: 'hello',
+        description: 'Say hello to someone',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'The name to greet',
+              default: 'World',
+            },
+          },
+        },
+      },
+      {
+        name: 'health_check',
+        description: 'Check server health status',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+    ],
   };
 });
 
-server.resource({
-  uri: 'config://settings',
-  name: 'Settings',
-  description: 'Server configuration settings',
-}, async () => {
-  return JSON.stringify({
-    version: '0.1.0',
-    name: '${nameKebab}',
-    created_with: 'mcpforge',
-    pattern: 'enterprise',
-  }, null, 2);
+// Handle tool calls
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  switch (name) {
+    case 'hello': {
+      const userName = (args as { name?: string }).name || 'World';
+      console.error(\`hello called with name=\${userName}\`);
+      return { content: [{ type: 'text', text: \`Hello, \${userName}!\` }] };
+    }
+    case 'health_check': {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            status: 'healthy',
+            version: '0.1.0',
+            uptime: startupTime,
+          }, null, 2),
+        }],
+      };
+    }
+    default:
+      throw new Error(\`Unknown tool: \${name}\`);
+  }
 });
 
-server.prompt({
-  name: 'system',
-  description: 'System prompt for this server',
-}, async () => {
-  return \`You are an assistant with access to the ${namePascal} MCP server.
+// List available resources
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: 'config://settings',
+        name: 'Settings',
+        description: 'Server configuration settings',
+        mimeType: 'application/json',
+      },
+    ],
+  };
+});
+
+// Read resource content
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+
+  if (uri === 'config://settings') {
+    return {
+      contents: [{
+        uri,
+        mimeType: 'application/json',
+        text: JSON.stringify({
+          version: '0.1.0',
+          name: '${nameKebab}',
+          created_with: 'mcpforge',
+          pattern: 'enterprise',
+        }, null, 2),
+      }],
+    };
+  }
+
+  throw new Error(\`Unknown resource: \${uri}\`);
+});
+
+// List available prompts
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: [
+      {
+        name: 'system',
+        description: 'System prompt for this server',
+      },
+    ],
+  };
+});
+
+// Get prompt content
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const { name } = request.params;
+
+  if (name === 'system') {
+    return {
+      messages: [{
+        role: 'user',
+        content: {
+          type: 'text',
+          text: \`You are an assistant with access to the ${namePascal} MCP server.
 
 Available tools:
 - hello: Greet someone by name
 - health_check: Check server health status
 
-Use these tools to help the user with their requests.\`;
+Use these tools to help the user with their requests.\`,
+        },
+      }],
+    };
+  }
+
+  throw new Error(\`Unknown prompt: \${name}\`);
 });
 
-server.run();
+// Start the server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error('${namePascal} MCP server running on stdio');
+}
+
+main().catch(console.error);
 `;
 }
 
