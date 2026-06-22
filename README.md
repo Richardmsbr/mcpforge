@@ -8,7 +8,7 @@
 
 ---
 
-MCPForge is a comprehensive framework providing battle-tested architecture patterns, production-ready templates, and a powerful CLI for building MCP (Model Context Protocol) servers across multiple languages.
+MCPForge is a framework providing documented architecture patterns, ready-to-use templates, and a CLI for building MCP (Model Context Protocol) servers across multiple languages.
 
 **Stop reinventing the wheel. Start forging production-ready MCP servers.**
 
